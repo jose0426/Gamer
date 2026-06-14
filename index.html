@@ -1430,40 +1430,8 @@
                 <button class="btn-primary" id="openModalButton" type="button">Hacer Donación PayPal</button>
                 <button class="btn-secondary" type="button" id="openInfoButton">Conoce Más</button>
                 <button class="btn-secondary" id="showImpactButton" type="button">Mostrar Impacto</button>
-                <div class="like-area">
-                    <button class="like-button" id="likeButton" type="button">👍 Me gusta</button>
-                    <span class="like-counter" id="likeCount">0</span>
-                </div>
                 <div class="share-area">
                     <button class="share-button" id="shareButton" type="button">🔗 Compartir</button>
-                    <span class="share-counter" id="shareCount">0</span>
-                </div>
-            </div>
-            <div class="comments-activity-grid">
-                <div class="comment-card">
-                    <div class="comment-card-header">
-                        <span>Comentarios</span>
-                        <span class="comment-count" id="commentCount">0</span>
-                    </div>
-                    <div class="comment-entry">
-                        <textarea id="commentInput" class="comment-input" placeholder="Comentar..."></textarea>
-                        <button class="btn-primary" id="commentSubmit" type="button">Enviar</button>
-                    </div>
-                    <div class="comment-list" id="commentList"></div>
-                </div>
-                <div class="activity-feed-card">
-                    <div class="activity-feed-header">
-                        <div>
-                            <div class="activity-feed-title">Historial de actividad</div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-                            <div class="activity-feed-status" id="activityFeedStatus">Sincronización local activa</div>
-                            <button class="btn-secondary small" id="openFirebaseConfigButton" type="button" style="font-size: 0.82rem; padding: 10px 14px;">Configurar Sync</button>
-                        </div>
-                    </div>
-                    <div class="activity-feed-list" id="activityFeedList">
-                        <div class="activity-feed-empty">Sin actividad aún.</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1637,83 +1605,13 @@
         const infoModalClose = document.getElementById('infoModalClose');
         const infoModalExit = document.getElementById('infoModalExit');
         const infoModalDonate = document.getElementById('infoModalDonate');
-        const likeButton = document.getElementById('likeButton');
-        const likeCountElem = document.getElementById('likeCount');
         const shareButton = document.getElementById('shareButton');
-        const shareCountElem = document.getElementById('shareCount');
-        const commentInput = document.getElementById('commentInput');
-        const commentSubmit = document.getElementById('commentSubmit');
-        const commentList = document.getElementById('commentList');
-        const commentCountElem = document.getElementById('commentCount');
-        const firebaseConfigOverlay = document.getElementById('firebaseConfigOverlay');
-        const firebaseJsonInput = document.getElementById('firebaseJsonInput');
-        const firebaseConfigSave = document.getElementById('firebaseConfigSave');
-        const firebaseConfigSkip = document.getElementById('firebaseConfigSkip');
-        const firebaseConfigClose = document.getElementById('firebaseConfigClose');
-        const activityFeedList = document.getElementById('activityFeedList');
-        const activityFeedStatus = document.getElementById('activityFeedStatus');
 
-        const ACTIVITY_STORAGE_KEY = 'augustoActivityLog';
-        const FIREBASE_CONFIG_KEY = 'augustoFirebaseConfig';
         const USER_ID_KEY = 'augustoUserId';
         const pageUserId = localStorage.getItem(USER_ID_KEY) || `user_${Math.random().toString(36).slice(2, 9)}`;
         localStorage.setItem(USER_ID_KEY, pageUserId);
 
         let modalTimeout;
-        let firebaseReady = false;
-        let firebaseDb = null;
-        let activityLogRef = null;
-
-        function getSavedLikes() {
-            return Math.min(100, parseInt(localStorage.getItem('augustoLikeCount') ?? '0', 10));
-        }
-
-        function hasLiked() {
-            return localStorage.getItem('augustoLiked') === 'true';
-        }
-
-        function setLiked() {
-            localStorage.setItem('augustoLiked', 'true');
-        }
-
-        function saveLikes(value) {
-            const nextValue = Math.min(100, value);
-            localStorage.setItem('augustoLikeCount', String(nextValue));
-            updateUrlParams('likes', nextValue);
-        }
-
-        function getSavedShares() {
-            return parseInt(localStorage.getItem('augustoShareCount') ?? '0', 10);
-        }
-
-        function saveShares(value) {
-            localStorage.setItem('augustoShareCount', String(value));
-            updateUrlParams('shares', value);
-        }
-
-        function getSavedComments() {
-            try {
-                return JSON.parse(localStorage.getItem('augustoComments') ?? '[]');
-            } catch {
-                return [];
-            }
-        }
-
-        function saveComments(comments) {
-            localStorage.setItem('augustoComments', JSON.stringify(comments));
-        }
-
-        function getSavedActivityLog() {
-            try {
-                return JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) ?? '[]');
-            } catch {
-                return [];
-            }
-        }
-
-        function saveActivityLog(log) {
-            localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(log));
-        }
 
         function openModal() {
             if (!modalOverlay) return;
@@ -1755,252 +1653,6 @@
             infoModalOverlay.setAttribute('aria-hidden', 'true');
         }
 
-        function updateLikeDisplay(count) {
-            if (likeCountElem) {
-                likeCountElem.textContent = count.toString();
-            }
-        }
-
-        function updateShareDisplay(count) {
-            if (shareCountElem) {
-                shareCountElem.textContent = `${count}`;
-            }
-        }
-
-        function updateCommentCount(count) {
-            if (commentCountElem) {
-                commentCountElem.textContent = count.toString();
-            }
-        }
-
-        function updateUrlParams(key, value) {
-            const params = new URLSearchParams(window.location.search);
-            params.set(key, String(value));
-            history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-        }
-
-        function renderComments(comments) {
-            if (!commentList) return;
-            commentList.innerHTML = '';
-            comments.slice().reverse().forEach((comment) => {
-                const item = document.createElement('div');
-                item.className = 'comment-item';
-                item.innerHTML = `<div class="comment-text">${comment.text}</div><div class="comment-timestamp">${comment.timestamp}</div>`;
-                commentList.appendChild(item);
-            });
-            updateCommentCount(comments.length);
-        }
-
-        function getActivityFeedItems() {
-            const log = getSavedActivityLog();
-            return log.slice().sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
-        }
-
-        function formatActivityMessage(entry) {
-            if (entry.type === 'like') {
-                return `${entry.message ?? 'Se registró un like.'}`;
-            }
-            if (entry.type === 'share') {
-                return `${entry.message ?? 'Se compartió este contenido.'}`;
-            }
-            if (entry.type === 'comment') {
-                return `${entry.payload?.text ?? 'Se dejó un comentario.'}`;
-            }
-            return 'Actividad registrada.';
-        }
-
-        function renderActivityFeed() {
-            if (!activityFeedList) return;
-            const items = getActivityFeedItems();
-            activityFeedList.innerHTML = '';
-
-            if (!items.length) {
-                activityFeedList.innerHTML = '<div class="activity-feed-empty">Sin actividad aún.</div>';
-                return;
-            }
-
-            items.forEach((item) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'activity-feed-item';
-                const title = item.type === 'like' ? '👍 Like' : item.type === 'share' ? '🔗 Compartir' : '💬 Comentario';
-                const time = new Date(item.timestamp).toLocaleString('es-ES', { hour12: false });
-                itemDiv.innerHTML = `
-                    <div class="activity-feed-row">
-                        <div class="activity-feed-title">${title}</div>
-                        <div class="activity-feed-meta">${time}</div>
-                    </div>
-                    <div class="activity-feed-body">${formatActivityMessage(item)}</div>
-                `;
-                activityFeedList.appendChild(itemDiv);
-            });
-        }
-
-        function updateAggregateStats() {
-            const items = getSavedActivityLog();
-            const likes = items.filter((item) => item.type === 'like').length;
-            const shares = items.filter((item) => item.type === 'share').length;
-            const comments = items.filter((item) => item.type === 'comment').length;
-
-            if (firebaseReady) {
-                updateLikeDisplay(likes);
-                updateShareDisplay(shares);
-                updateCommentCount(comments);
-            } else {
-                updateLikeDisplay(Math.max(getSavedLikes(), likes));
-                updateShareDisplay(Math.max(getSavedShares(), shares));
-                updateCommentCount(Math.max(getSavedComments().length, comments));
-            }
-        }
-
-        function addActivityToLog(entry) {
-            const log = getSavedActivityLog();
-            if (!log.some((item) => item.id === entry.id)) {
-                log.push(entry);
-                log.sort((a, b) => a.timestamp - b.timestamp);
-                saveActivityLog(log);
-            }
-        }
-
-        function addActivity(type, payload) {
-            const entry = {
-                id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                type,
-                userId: pageUserId,
-                timestamp: Date.now(),
-                message: payload.message,
-                payload: payload,
-            };
-
-            addActivityToLog(entry);
-            renderActivityFeed();
-            updateAggregateStats();
-
-            if (firebaseReady && activityLogRef) {
-                activityLogRef.push(entry).catch((error) => {
-                    console.error('Firebase push falló:', error);
-                    addActivityToLog(entry);
-                });
-            }
-        }
-
-        function showFirebaseConfigOverlay() {
-            if (firebaseConfigOverlay) {
-                firebaseConfigOverlay.style.display = 'flex';
-            }
-        }
-
-        function hideFirebaseConfigOverlay() {
-            if (firebaseConfigOverlay) {
-                firebaseConfigOverlay.style.display = 'none';
-            }
-        }
-
-        function loadFirebaseConfig() {
-            try {
-                return JSON.parse(localStorage.getItem(FIREBASE_CONFIG_KEY) ?? 'null');
-            } catch {
-                return null;
-            }
-        }
-
-        function saveFirebaseConfig(config) {
-            localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(config));
-        }
-
-        function validateFirebaseConfig(config) {
-            return config && typeof config === 'object' && config.apiKey && config.projectId && config.databaseURL && config.appId;
-        }
-
-        function updateFeedStatus(active) {
-            if (!activityFeedStatus) return;
-            activityFeedStatus.textContent = active ? 'Sincronización Firebase activa' : 'Sincronización local activa';
-        }
-
-        function initializeFirebase() {
-            const savedConfig = loadFirebaseConfig();
-            if (!validateFirebaseConfig(savedConfig)) {
-                updateFeedStatus(false);
-                hideFirebaseConfigOverlay();
-                renderActivityFeed();
-                updateAggregateStats();
-                return;
-            }
-
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(savedConfig);
-                }
-                firebaseDb = firebase.database();
-                activityLogRef = firebaseDb.ref('activityLog');
-
-                activityLogRef.limitToLast(50).on('child_added', (snapshot) => {
-                    const entry = snapshot.val();
-                    if (entry) {
-                        addActivityToLog(entry);
-                        renderActivityFeed();
-                        updateAggregateStats();
-                    }
-                });
-
-                firebaseReady = true;
-                updateFeedStatus(true);
-
-                activityLogRef.orderByChild('timestamp').limitToLast(50).once('value', (snapshot) => {
-                    const items = [];
-                    snapshot.forEach((child) => {
-                        const entry = child.val();
-                        if (entry) items.push(entry);
-                    });
-                    items.sort((a, b) => a.timestamp - b.timestamp);
-                    saveActivityLog(items);
-                    renderActivityFeed();
-                    updateAggregateStats();
-                });
-            } catch (error) {
-                console.error('Error al iniciar Firebase:', error);
-                firebaseReady = false;
-                updateFeedStatus(false);
-                showFirebaseConfigOverlay();
-            }
-        }
-
-        function parseFirebaseConfigInput() {
-            if (!firebaseJsonInput) return null;
-            try {
-                return JSON.parse(firebaseJsonInput.value.trim());
-            } catch {
-                return null;
-            }
-        }
-
-        if (firebaseConfigSave) {
-            firebaseConfigSave.addEventListener('click', () => {
-                const config = parseFirebaseConfigInput();
-                if (!validateFirebaseConfig(config)) {
-                    alert('Por favor pega un objeto JSON válido de Firebase con apiKey, projectId, databaseURL y appId.');
-                    return;
-                }
-                saveFirebaseConfig(config);
-                hideFirebaseConfigOverlay();
-                initializeFirebase();
-            });
-        }
-
-        if (firebaseConfigSkip) {
-            firebaseConfigSkip.addEventListener('click', () => {
-                hideFirebaseConfigOverlay();
-                updateFeedStatus(false);
-                renderActivityFeed();
-                updateAggregateStats();
-            });
-        }
-
-        if (firebaseConfigClose) {
-            firebaseConfigClose.addEventListener('click', () => {
-                hideFirebaseConfigOverlay();
-                updateFeedStatus(false);
-            });
-        }
 
         if (openModalButton) {
             openModalButton.addEventListener('click', openModal);
@@ -2010,99 +1662,21 @@
             openInfoButton.addEventListener('click', openInfoModal);
         }
 
-        const openFirebaseConfigButton = document.getElementById('openFirebaseConfigButton');
-        if (openFirebaseConfigButton) {
-            openFirebaseConfigButton.addEventListener('click', () => {
-                firebaseConfigOverlay.style.display = 'flex';
-            });
-        }
-
-        if (likeButton) {
-            likeButton.addEventListener('click', () => {
-                if (hasLiked()) return;
-
-                const currentLikes = Math.max(getSavedLikes(), getSavedActivityLog().filter((item) => item.type === 'like').length);
-                if (currentLikes >= 100) {
-                    likeButton.disabled = true;
-                    likeButton.style.opacity = '0.7';
-                    likeButton.textContent = '👍 Límite 100';
-                    return;
-                }
-
-                const nextLikes = Math.min(currentLikes + 1, 100);
-                saveLikes(nextLikes);
-                setLiked();
-                updateLikeDisplay(nextLikes);
-                addActivity('like', { message: `${pageUserId} dio like.` });
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = nextLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
-            });
-        }
-
         if (shareButton) {
             shareButton.addEventListener('click', () => {
-                const nextShares = getSavedShares() + 1;
-                saveShares(nextShares);
-                updateShareDisplay(nextShares);
-
                 const shareUrl = `${window.location.origin}${window.location.pathname}`;
                 const text = `Mira esta página de Augusto Gamer: ${shareUrl}`;
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-
-                addActivity('share', { message: `${pageUserId} compartió la página.` });
                 window.open(whatsappUrl, '_blank');
                 shareButton.textContent = '✅ Enviado';
 
                 setTimeout(() => {
                     if (shareButton) {
-                        shareButton.textContent = '🔗 WhatsApp';
+                        shareButton.textContent = '🔗 Compartir';
                     }
                 }, 2200);
             });
         }
-
-        if (commentSubmit && commentInput) {
-            commentSubmit.addEventListener('click', () => {
-                const commentText = commentInput.value.trim();
-                if (!commentText) return;
-
-                const comments = getSavedComments();
-                const nextComment = {
-                    text: commentText,
-                    timestamp: new Date().toLocaleString('es-ES', { hour12: false }),
-                };
-                comments.push(nextComment);
-                saveComments(comments);
-                renderComments(comments);
-                addActivity('comment', { text: commentText, message: `${pageUserId} comentó: ${commentText}` });
-                commentInput.value = '';
-            });
-        }
-
-        const initialLikes = Math.max(getSavedLikes(), getSavedActivityLog().filter((item) => item.type === 'like').length);
-        updateLikeDisplay(initialLikes);
-        if (likeButton) {
-            if (hasLiked()) {
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = initialLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
-            } else if (initialLikes >= 100) {
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = '👍 Límite 100';
-            }
-        }
-
-        const initialShares = getSavedShares();
-        updateShareDisplay(initialShares);
-
-        const initialComments = getSavedComments();
-        renderComments(initialComments);
-
-        renderActivityFeed();
-        updateAggregateStats();
-        initializeFirebase();
 
         function updateImpactButtons(isActive) {
             const text = isActive ? 'Ocultar Impacto' : 'Mostrar Impacto';
