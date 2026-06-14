@@ -1594,6 +1594,46 @@
         </div>
     </div>
 
+    <!-- FIREBASE CONFIG OVERLAY -->
+    <div class="info-modal-overlay" id="firebaseConfigOverlay" style="display: none; z-index: 50;">
+        <div class="info-modal-window" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="info-modal-header">
+                <span class="info-modal-title">🔗 Sincronización en Vivo</span>
+            </div>
+            <div class="info-modal-content" style="padding: 32px;">
+                <p style="color: #d1d8f2; margin-bottom: 24px; line-height: 1.6; font-size: 0.95rem;"><strong>Usa la misma configuración en PC y teléfono para sincronizar likes, comentarios y shares en tiempo real.</strong></p>
+
+                <div style="background: rgba(255,193,79,0.1); border: 1px solid rgba(255,193,79,0.3); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+                    <p style="color: #ffb347; font-size: 0.85rem; margin-bottom: 12px; font-weight: 700;">📋 PASOS RÁPIDOS (5 minutos):</p>
+                    <ol style="color: #bac2e0; font-size: 0.85rem; margin: 0; padding-left: 20px; line-height: 2;">
+                        <li>Abre <a href="https://console.firebase.google.com/" target="_blank" style="color: #ffc439; text-decoration: underline;">console.firebase.google.com</a></li>
+                        <li>Crea proyecto (nombre: "augusto-gamer")</li>
+                        <li>Añade app web (icono &lt;/&gt;)</li>
+                        <li>Habilita Realtime Database (menú izquierdo → "Realtime Database" → Crear → Modo prueba)</li>
+                        <li>Ve a Settings → Tu app → "Config"</li>
+                        <li>Copia el objeto JSON completo</li>
+                        <li>Pega abajo y acepta ✅</li>
+                    </ol>
+                </div>
+
+                <label style="display: block; color: #eef2ff; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem;">Objeto JSON de Firebase:</label>
+                <textarea id="firebaseJsonInput" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: #eef2ff; font-family: monospace; font-size: 0.8rem; min-height: 140px; resize: vertical;" placeholder="{&#10;  &quot;apiKey&quot;: &quot;AIza...&quot;,&#10;  &quot;authDomain&quot;: &quot;...firebaseapp.com&quot;,&#10;  &quot;databaseURL&quot;: &quot;https://...firebaseio.com&quot;,&#10;  &quot;projectId&quot;: &quot;...&quot;,&#10;  &quot;storageBucket&quot;: &quot;...appspot.com&quot;,&#10;  &quot;messagingSenderId&quot;: &quot;...&quot;,&#10;  &quot;appId&quot;: &quot;...&quot;&#10;}"></textarea>
+
+                <div style="margin-top: 24px; display: flex; gap: 12px;">
+                    <button id="firebaseConfigSave" class="btn-primary" style="flex: 1; padding: 12px; font-size: 0.95rem;">✅ Guardar y Sincronizar</button>
+                    <button id="firebaseConfigSkip" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 0.95rem;">⏭️ Omitir (Modo Local)</button>
+                </div>
+
+                <div style="background: rgba(100,200,255,0.1); border: 1px solid rgba(100,200,255,0.2); padding: 12px; border-radius: 10px; margin-top: 16px;">
+                    <p style="color: #a9d6ff; font-size: 0.8rem; margin: 0; line-height: 1.5;">
+                        <strong>ℹ️ Modo Local:</strong> Sin Firebase, los datos se guardan solo en este dispositivo.<br/>
+                        <strong>✨ Con Firebase:</strong> Todos los dispositivos ven los mismos datos en tiempo real.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- IMPACT OVERLAY (hidden by default) -->
     <div class="impact-overlay" id="impactOverlay" aria-hidden="true">
         <div class="impact-box modal" role="dialog" aria-modal="true" aria-labelledby="impactTitle">
@@ -1634,10 +1674,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         // ===== FIREBASE SYNC (REPLACE CONFIG BELOW) =====
-        // Create a Firebase Web app in your Firebase Console and paste
-        // the config object values below. If you don't paste them,
-        // the page will continue to work locally (localStorage fallback).
-        const FIREBASE_CONFIG = {
+        // Create a Firebase Web app in your Firebase Console. You can
+        // either paste the config below, or paste the full config JSON
+        // when prompted in the browser. Saved config is stored in localStorage.
+        const SAVED_CONFIG_KEY = 'augustoFirebaseConfig';
+        let FIREBASE_CONFIG = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
             databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
@@ -1646,6 +1687,62 @@
             messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
+
+        try {
+            const saved = localStorage.getItem(SAVED_CONFIG_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                FIREBASE_CONFIG = Object.assign(FIREBASE_CONFIG, parsed);
+            }
+        } catch (e) {
+            console.warn('Could not parse saved firebase config:', e);
+        }
+
+        function promptForFirebaseConfig() {
+            const overlay = document.getElementById('firebaseConfigOverlay');
+            const textarea = document.getElementById('firebaseJsonInput');
+            const saveBtn = document.getElementById('firebaseConfigSave');
+            const skipBtn = document.getElementById('firebaseConfigSkip');
+
+            if (!overlay) return false;
+
+            const saved = localStorage.getItem(SAVED_CONFIG_KEY);
+            if (saved) {
+                try {
+                    textarea.value = saved;
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            overlay.style.display = 'flex';
+
+            return new Promise((resolve) => {
+                saveBtn.onclick = () => {
+                    const json = textarea.value.trim();
+                    if (!json) {
+                        alert('Por favor, pega el JSON de configuración.');
+                        return;
+                    }
+                    try {
+                        const parsed = JSON.parse(json);
+                        localStorage.setItem(SAVED_CONFIG_KEY, json);
+                        FIREBASE_CONFIG = Object.assign(FIREBASE_CONFIG, parsed);
+                        overlay.style.display = 'none';
+                        alert('✅ Configuración guardada. La página se recargará.');
+                        window.location.reload();
+                        resolve(true);
+                    } catch (err) {
+                        alert('❌ JSON inválido. Verifica el formato e intenta de nuevo.');
+                    }
+                };
+
+                skipBtn.onclick = () => {
+                    overlay.style.display = 'none';
+                    resolve(false);
+                };
+            });
+        }
 
         const STORAGE_KEYS = {
             ACTIVITY_LOG: 'augustoActivityLog',
@@ -1661,6 +1758,19 @@
 
         function initFirebaseIfConfigured() {
             try {
+                // If placeholders are still present, try to prompt the user once
+                if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('YOUR')) {
+                    console.log('⚠️ Modo local activado (sin Firebase). Sincronización limitada a este dispositivo.');
+                    promptForFirebaseConfig().then((got) => {
+                        if (got) {
+                            initFirebaseIfConfigured(); // retry after getting config
+                        } else {
+                            firebaseReady = false;
+                        }
+                    });
+                    return;
+                }
+
                 if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('YOUR')) {
                     firebase.initializeApp(FIREBASE_CONFIG);
                     const db = firebase.database();
