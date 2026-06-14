@@ -1228,6 +1228,210 @@
             font-weight: 700;
             text-shadow: 0 0 18px rgba(255, 180, 71, 0.25);
         }
+
+        /* ACTIVITY SECTION */
+        .activity-section {
+            width: 100%;
+            max-width: 1200px;
+            padding: 60px 32px;
+            margin: 40px auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .activity-container {
+            width: 100%;
+            max-width: 940px;
+            padding: 40px 36px;
+            border-radius: 32px;
+            background: rgba(21, 27, 59, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 32px 90px rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(18px);
+        }
+
+        .activity-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 32px;
+            text-align: center;
+            color: #eef2ff;
+            letter-spacing: 0.02em;
+        }
+
+        .activity-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .activity-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .activity-stat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 193, 79, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .activity-stat-icon {
+            font-size: 1.8rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .activity-stat-info {
+            flex: 1;
+        }
+
+        .activity-stat-label {
+            font-size: 0.85rem;
+            color: #9ca7d3;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .activity-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffc439;
+        }
+
+        .activity-feed {
+            margin-top: 28px;
+        }
+
+        .activity-feed-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #eef2ff;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 193, 79, 0.2);
+        }
+
+        .activity-feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .activity-feed-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .activity-feed-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .activity-feed-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 193, 79, 0.3);
+            border-radius: 10px;
+        }
+
+        .activity-feed-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 193, 79, 0.5);
+        }
+
+        .activity-feed-item {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(17, 24, 45, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInUp 0.3s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .activity-feed-icon {
+            font-size: 1.4rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .activity-feed-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .activity-feed-text {
+            color: #d1d8f2;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .activity-feed-user {
+            color: #ffc439;
+            font-weight: 700;
+            display: inline;
+        }
+
+        .activity-feed-action {
+            color: #bac2e0;
+            display: inline;
+        }
+
+        .activity-feed-time {
+            color: #9ca7d3;
+            font-size: 0.75rem;
+        }
+
+        .activity-feed-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca7d3;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .activity-container {
+                padding: 28px 20px;
+            }
+
+            .activity-title {
+                font-size: 1.6rem;
+            }
+
+            .activity-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+
+            .activity-stat-item {
+                padding: 14px 12px;
+            }
+
+            .activity-stat-value {
+                font-size: 1.4rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1266,6 +1470,53 @@
             
         </div>
         
+        <div class="hero-image">
+            <img src="img/Gamer.png" alt="Augusto Gamer">
+        </div>
+    </section>
+
+    <!-- ACTIVITY FEED SECTION -->
+    <section class="activity-section">
+        <div class="activity-container">
+            <h2 class="activity-title">📊 Actividad en Vivo</h2>
+            <div class="activity-stats">
+                <div class="activity-stat-item">
+                    <div class="activity-stat-icon">👍</div>
+                    <div class="activity-stat-info">
+                        <div class="activity-stat-label">Me Gusta</div>
+                        <div class="activity-stat-value" id="totalLikes">0</div>
+                    </div>
+                </div>
+                <div class="activity-stat-item">
+                    <div class="activity-stat-icon">💬</div>
+                    <div class="activity-stat-info">
+                        <div class="activity-stat-label">Comentarios</div>
+                        <div class="activity-stat-value" id="totalComments">0</div>
+                    </div>
+                </div>
+                <div class="activity-stat-item">
+                    <div class="activity-stat-icon">🔗</div>
+                    <div class="activity-stat-info">
+                        <div class="activity-stat-label">Compartidas</div>
+                        <div class="activity-stat-value" id="totalShares">0</div>
+                    </div>
+                </div>
+                <div class="activity-stat-item">
+                    <div class="activity-stat-icon">👥</div>
+                    <div class="activity-stat-info">
+                        <div class="activity-stat-label">Participantes</div>
+                        <div class="activity-stat-value" id="totalUsers">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-feed">
+                <h3 class="activity-feed-title">Últimas Actividades</h3>
+                <div class="activity-feed-list" id="activityFeedList">
+                    <div class="activity-feed-empty">Sé el primero en interactuar</div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- FOOTER -->
@@ -1380,6 +1631,133 @@
     </div>
 
     <script>
+        // ===== ACTIVITY LOG SYSTEM =====
+        const STORAGE_KEYS = {
+            ACTIVITY_LOG: 'augustoActivityLog',
+            LIKES: 'augustoLikeCount',
+            LIKED: 'augustoLiked',
+            SHARES: 'augustoShareCount',
+            COMMENTS: 'augustoComments',
+            USER_ID: 'augustoUserId',
+            LIKES_AGGREGATE: 'augustoLikesAggregate',
+            SHARES_AGGREGATE: 'augustoSharesAggregate'
+        };
+
+        // Generate or get unique user ID
+        function getUserId() {
+            let userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
+            }
+            return userId;
+        }
+
+        // Get all activities from log
+        function getActivityLog() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) ?? '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        // Add activity to log
+        function addActivity(type, data) {
+            const log = getActivityLog();
+            log.push({
+                id: Date.now() + Math.random(),
+                type,
+                userId: getUserId(),
+                timestamp: new Date().toISOString(),
+                data
+            });
+            localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(log));
+            updateActivityFeed();
+            updateActivityStats();
+        }
+
+        // Get aggregate statistics
+        function getAggregateStats() {
+            const log = getActivityLog();
+            const likes = log.filter(a => a.type === 'like').length;
+            const comments = log.filter(a => a.type === 'comment').length;
+            const shares = log.filter(a => a.type === 'share').length;
+            const uniqueUsers = new Set(log.map(a => a.userId)).size;
+
+            return { likes, comments, shares, uniqueUsers };
+        }
+
+        // Update activity feed display
+        function updateActivityFeed() {
+            const log = getActivityLog();
+            const feedList = document.getElementById('activityFeedList');
+            if (!feedList) return;
+
+            if (log.length === 0) {
+                feedList.innerHTML = '<div class="activity-feed-empty">Sé el primero en interactuar</div>';
+                return;
+            }
+
+            feedList.innerHTML = log
+                .slice()
+                .reverse()
+                .slice(0, 50)
+                .map(activity => {
+                    const date = new Date(activity.timestamp);
+                    const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    let icon = '';
+                    let actionText = '';
+
+                    switch (activity.type) {
+                        case 'like':
+                            icon = '👍';
+                            actionText = 'dio Me Gusta';
+                            break;
+                        case 'comment':
+                            icon = '💬';
+                            actionText = `comentó: "${activity.data.text}"`;
+                            break;
+                        case 'share':
+                            icon = '🔗';
+                            actionText = 'compartió este contenido';
+                            break;
+                        default:
+                            icon = '📌';
+                            actionText = 'interactuó';
+                    }
+
+                    return `
+                        <div class="activity-feed-item">
+                            <div class="activity-feed-icon">${icon}</div>
+                            <div class="activity-feed-content">
+                                <div class="activity-feed-text">
+                                    <span class="activity-feed-user">Usuario</span>
+                                    <span class="activity-feed-action"> ${actionText}</span>
+                                </div>
+                                <div class="activity-feed-time">${timeStr}</div>
+                            </div>
+                        </div>
+                    `;
+                })
+                .join('');
+        }
+
+        // Update activity statistics
+        function updateActivityStats() {
+            const stats = getAggregateStats();
+            const likesElem = document.getElementById('totalLikes');
+            const commentsElem = document.getElementById('totalComments');
+            const sharesElem = document.getElementById('totalShares');
+            const usersElem = document.getElementById('totalUsers');
+
+            if (likesElem) likesElem.textContent = stats.likes;
+            if (commentsElem) commentsElem.textContent = stats.comments;
+            if (sharesElem) sharesElem.textContent = stats.shares;
+            if (usersElem) usersElem.textContent = stats.uniqueUsers || 1;
+        }
+
+        // ===== ORIGINAL DONATION ELEMENTS =====
         const openModalButton = document.getElementById('openModalButton');
         const openInfoButton = document.getElementById('openInfoButton');
         const toggleImpactButton = document.getElementById('toggleImpactButton');
@@ -1405,7 +1783,7 @@
         let modalTimeout;
 
         function getSavedLikes() {
-            return Math.min(100, parseInt(localStorage.getItem('augustoLikeCount') ?? '0', 10));
+            return Math.min(100, parseInt(localStorage.getItem(STORAGE_KEYS.LIKES) ?? '0', 10));
         }
 
         function getLikesFromUrl() {
@@ -1415,16 +1793,16 @@
         }
 
         function hasLiked() {
-            return localStorage.getItem('augustoLiked') === 'true';
+            return localStorage.getItem(STORAGE_KEYS.LIKED) === 'true';
         }
 
         function setLiked() {
-            localStorage.setItem('augustoLiked', 'true');
+            localStorage.setItem(STORAGE_KEYS.LIKED, 'true');
         }
 
         function saveLikes(value) {
             const nextValue = Math.min(100, value);
-            localStorage.setItem('augustoLikeCount', String(nextValue));
+            localStorage.setItem(STORAGE_KEYS.LIKES, String(nextValue));
             updateUrlParams('likes', nextValue);
         }
 
@@ -1435,11 +1813,11 @@
         }
 
         function getSavedShares() {
-            return parseInt(localStorage.getItem('augustoShareCount') ?? '0', 10);
+            return parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) ?? '0', 10);
         }
 
         function saveShares(value) {
-            localStorage.setItem('augustoShareCount', String(value));
+            localStorage.setItem(STORAGE_KEYS.SHARES, String(value));
             updateUrlParams('shares', value);
         }
 
@@ -1451,14 +1829,14 @@
 
         function getSavedComments() {
             try {
-                return JSON.parse(localStorage.getItem('augustoComments') ?? '[]');
+                return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMMENTS) ?? '[]');
             } catch (error) {
                 return [];
             }
         }
 
         function saveComments(comments) {
-            localStorage.setItem('augustoComments', JSON.stringify(comments));
+            localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(comments));
         }
 
         function renderComments(comments) {
@@ -1532,6 +1910,7 @@
                 saveLikes(nextLikes);
                 setLiked();
                 updateLikeDisplay(nextLikes);
+                addActivity('like', {});
                 likeButton.disabled = true;
                 likeButton.style.opacity = '0.7';
                 likeButton.textContent = nextLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
@@ -1544,6 +1923,7 @@
                 const nextShares = currentShares + 1;
                 saveShares(nextShares);
                 updateShareDisplay(nextShares);
+                addActivity('share', {});
 
                 const shareUrl = `${window.location.origin}${window.location.pathname}?shares=${nextShares}`;
                 const text = `Mira esta página de Augusto Gamer: ${shareUrl}`;
@@ -1554,7 +1934,7 @@
 
                 setTimeout(() => {
                     if (shareButton) {
-                        shareButton.textContent = '🔗 WhatsApp';
+                        shareButton.textContent = '🔗 Compartir';
                     }
                 }, 2200);
             });
@@ -1573,6 +1953,7 @@
                 comments.push(nextComment);
                 saveComments(comments);
                 renderComments(comments);
+                addActivity('comment', { text: commentText });
                 commentInput.value = '';
             });
         }
@@ -1596,6 +1977,10 @@
 
         const initialComments = getSavedComments();
         renderComments(initialComments);
+
+        // Initialize activity feed and stats
+        updateActivityFeed();
+        updateActivityStats();
 
 
         function updateImpactButtons(isActive) {
@@ -1645,6 +2030,12 @@
                 closeInfoModal();
             }
         });
+
+        // Auto-refresh activity feed every 2 seconds
+        setInterval(() => {
+            updateActivityFeed();
+            updateActivityStats();
+        }, 2000);
     </script>
 </body>
 </html>
