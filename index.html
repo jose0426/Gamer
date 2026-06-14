@@ -1630,18 +1630,56 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        // ===== ACTIVITY LOG SYSTEM =====
+        // ===== FIREBASE SYNC (REPLACE CONFIG BELOW) =====
+        // Create a Firebase Web app in your Firebase Console and paste
+        // the config object values below. If you don't paste them,
+        // the page will continue to work locally (localStorage fallback).
+        const FIREBASE_CONFIG = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
         const STORAGE_KEYS = {
             ACTIVITY_LOG: 'augustoActivityLog',
             LIKES: 'augustoLikeCount',
             LIKED: 'augustoLiked',
             SHARES: 'augustoShareCount',
             COMMENTS: 'augustoComments',
-            USER_ID: 'augustoUserId',
-            LIKES_AGGREGATE: 'augustoLikesAggregate',
-            SHARES_AGGREGATE: 'augustoSharesAggregate'
+            USER_ID: 'augustoUserId'
         };
+
+        let firebaseReady = false;
+        let activityRef = null;
+
+        function initFirebaseIfConfigured() {
+            try {
+                if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('YOUR')) {
+                    firebase.initializeApp(FIREBASE_CONFIG);
+                    const db = firebase.database();
+                    activityRef = db.ref('activityLog');
+                    // Listen for full list changes and sync to localStorage
+                    activityRef.on('value', (snap) => {
+                        const val = snap.val() || {};
+                        const arr = Object.keys(val).map(k => ({ id: k, ...val[k] }));
+                        localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(arr));
+                        updateActivityFeed();
+                        updateActivityStats();
+                    });
+                    firebaseReady = true;
+                }
+            } catch (e) {
+                console.warn('Firebase init failed:', e);
+                firebaseReady = false;
+            }
+        }
 
         // Generate or get unique user ID
         function getUserId() {
@@ -1653,7 +1691,6 @@
             return userId;
         }
 
-        // Get all activities from log
         function getActivityLog() {
             try {
                 return JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) ?? '[]');
@@ -1662,43 +1699,50 @@
             }
         }
 
-        // Add activity to log
         function addActivity(type, data) {
-            const log = getActivityLog();
-            log.push({
-                id: Date.now() + Math.random(),
+            const activity = {
                 type,
                 userId: getUserId(),
                 timestamp: new Date().toISOString(),
                 data
-            });
-            localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(log));
-            updateActivityFeed();
-            updateActivityStats();
+            };
+
+            if (firebaseReady && activityRef) {
+                // push to remote DB; listener will sync localStorage
+                activityRef.push(activity).catch(() => {
+                    // fallback to local if push fails
+                    const log = getActivityLog();
+                    log.push({ id: Date.now() + Math.random(), ...activity });
+                    localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(log));
+                    updateActivityFeed();
+                    updateActivityStats();
+                });
+            } else {
+                const log = getActivityLog();
+                log.push({ id: Date.now() + Math.random(), ...activity });
+                localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify(log));
+                updateActivityFeed();
+                updateActivityStats();
+            }
         }
 
-        // Get aggregate statistics
         function getAggregateStats() {
             const log = getActivityLog();
             const likes = log.filter(a => a.type === 'like').length;
             const comments = log.filter(a => a.type === 'comment').length;
             const shares = log.filter(a => a.type === 'share').length;
             const uniqueUsers = new Set(log.map(a => a.userId)).size;
-
             return { likes, comments, shares, uniqueUsers };
         }
 
-        // Update activity feed display
         function updateActivityFeed() {
             const log = getActivityLog();
             const feedList = document.getElementById('activityFeedList');
             if (!feedList) return;
-
             if (log.length === 0) {
                 feedList.innerHTML = '<div class="activity-feed-empty">Sé el primero en interactuar</div>';
                 return;
             }
-
             feedList.innerHTML = log
                 .slice()
                 .reverse()
@@ -1708,25 +1752,12 @@
                     const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                     let icon = '';
                     let actionText = '';
-
                     switch (activity.type) {
-                        case 'like':
-                            icon = '👍';
-                            actionText = 'dio Me Gusta';
-                            break;
-                        case 'comment':
-                            icon = '💬';
-                            actionText = `comentó: "${activity.data.text}"`;
-                            break;
-                        case 'share':
-                            icon = '🔗';
-                            actionText = 'compartió este contenido';
-                            break;
-                        default:
-                            icon = '📌';
-                            actionText = 'interactuó';
+                        case 'like': icon = '👍'; actionText = 'dio Me Gusta'; break;
+                        case 'comment': icon = '💬'; actionText = `comentó: "${activity.data.text}"`; break;
+                        case 'share': icon = '🔗'; actionText = 'compartió este contenido'; break;
+                        default: icon = '📌'; actionText = 'interactuó';
                     }
-
                     return `
                         <div class="activity-feed-item">
                             <div class="activity-feed-icon">${icon}</div>
@@ -1743,21 +1774,19 @@
                 .join('');
         }
 
-        // Update activity statistics
         function updateActivityStats() {
             const stats = getAggregateStats();
             const likesElem = document.getElementById('totalLikes');
             const commentsElem = document.getElementById('totalComments');
             const sharesElem = document.getElementById('totalShares');
             const usersElem = document.getElementById('totalUsers');
-
             if (likesElem) likesElem.textContent = stats.likes;
             if (commentsElem) commentsElem.textContent = stats.comments;
             if (sharesElem) sharesElem.textContent = stats.shares;
             if (usersElem) usersElem.textContent = stats.uniqueUsers || 1;
         }
 
-        // ===== ORIGINAL DONATION ELEMENTS =====
+        // ===== ORIGINAL DONATION ELEMENTS (unchanged) =====
         const openModalButton = document.getElementById('openModalButton');
         const openInfoButton = document.getElementById('openInfoButton');
         const toggleImpactButton = document.getElementById('toggleImpactButton');
@@ -1782,63 +1811,17 @@
         const commentCountElem = document.getElementById('commentCount');
         let modalTimeout;
 
-        function getSavedLikes() {
-            return Math.min(100, parseInt(localStorage.getItem(STORAGE_KEYS.LIKES) ?? '0', 10));
-        }
-
-        function getLikesFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const urlLikes = parseInt(params.get('likes') ?? '0', 10);
-            return Math.min(100, Number.isNaN(urlLikes) ? 0 : urlLikes);
-        }
-
-        function hasLiked() {
-            return localStorage.getItem(STORAGE_KEYS.LIKED) === 'true';
-        }
-
-        function setLiked() {
-            localStorage.setItem(STORAGE_KEYS.LIKED, 'true');
-        }
-
-        function saveLikes(value) {
-            const nextValue = Math.min(100, value);
-            localStorage.setItem(STORAGE_KEYS.LIKES, String(nextValue));
-            updateUrlParams('likes', nextValue);
-        }
-
-        function updateLikeDisplay(count) {
-            if (likeCountElem) {
-                likeCountElem.textContent = count.toString();
-            }
-        }
-
-        function getSavedShares() {
-            return parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) ?? '0', 10);
-        }
-
-        function saveShares(value) {
-            localStorage.setItem(STORAGE_KEYS.SHARES, String(value));
-            updateUrlParams('shares', value);
-        }
-
-        function updateShareDisplay(count) {
-            if (shareCountElem) {
-                shareCountElem.textContent = `${count}`;
-            }
-        }
-
-        function getSavedComments() {
-            try {
-                return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMMENTS) ?? '[]');
-            } catch (error) {
-                return [];
-            }
-        }
-
-        function saveComments(comments) {
-            localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(comments));
-        }
-
+        function getSavedLikes() { return Math.min(100, parseInt(localStorage.getItem(STORAGE_KEYS.LIKES) ?? '0', 10)); }
+        function getLikesFromUrl() { const params = new URLSearchParams(window.location.search); const urlLikes = parseInt(params.get('likes') ?? '0', 10); return Math.min(100, Number.isNaN(urlLikes) ? 0 : urlLikes); }
+        function hasLiked() { return localStorage.getItem(STORAGE_KEYS.LIKED) === 'true'; }
+        function setLiked() { localStorage.setItem(STORAGE_KEYS.LIKED, 'true'); }
+        function saveLikes(value) { const nextValue = Math.min(100, value); localStorage.setItem(STORAGE_KEYS.LIKES, String(nextValue)); updateUrlParams('likes', nextValue); }
+        function updateLikeDisplay(count) { if (likeCountElem) { likeCountElem.textContent = count.toString(); } }
+        function getSavedShares() { return parseInt(localStorage.getItem(STORAGE_KEYS.SHARES) ?? '0', 10); }
+        function saveShares(value) { localStorage.setItem(STORAGE_KEYS.SHARES, String(value)); updateUrlParams('shares', value); }
+        function updateShareDisplay(count) { if (shareCountElem) { shareCountElem.textContent = `${count}`; } }
+        function getSavedComments() { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMMENTS) ?? '[]'); } catch (error) { return []; } }
+        function saveComments(comments) { localStorage.setItem(STORAGE_KEYS.COMMENTS, JSON.stringify(comments)); }
         function renderComments(comments) {
             if (!commentList) return;
             commentList.innerHTML = '';
@@ -1848,16 +1831,10 @@
                 item.innerHTML = `<div class="comment-text">${comment.text}</div><div class="comment-timestamp">${comment.timestamp}</div>`;
                 commentList.appendChild(item);
             });
-            if (commentCountElem) {
-                commentCountElem.textContent = comments.length.toString();
-            }
+            if (commentCountElem) { commentCountElem.textContent = comments.length.toString(); }
         }
 
-        function updateUrlParams(key, value) {
-            const params = new URLSearchParams(window.location.search);
-            params.set(key, String(value));
-            history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-        }
+        function updateUrlParams(key, value) { const params = new URLSearchParams(window.location.search); params.set(key, String(value)); history.replaceState({}, '', `${location.pathname}?${params.toString()}`); }
 
         function openModal() {
             clearTimeout(modalTimeout);
@@ -1865,7 +1842,6 @@
             modalFallback.classList.remove('active');
             modalOverlay.classList.add('active');
             infoModalOverlay.classList.remove('active');
-            
             modalTimeout = setTimeout(() => {
                 if (modalLoader && modalLoader.classList.contains('active')) {
                     modalLoader.classList.remove('active');
@@ -1874,46 +1850,22 @@
             }, 3000);
         }
 
-        function closeModal() {
-            clearTimeout(modalTimeout);
-            modalOverlay.classList.remove('active');
-            modalLoader.classList.remove('active');
-            modalFallback.classList.remove('active');
-        }
-
-        function openInfoModal() {
-            infoModalOverlay.classList.add('active');
-        }
-
-        function closeInfoModal() {
-            infoModalOverlay.classList.remove('active');
-        }
+        function closeModal() { clearTimeout(modalTimeout); modalOverlay.classList.remove('active'); modalLoader.classList.remove('active'); modalFallback.classList.remove('active'); }
+        function openInfoModal() { infoModalOverlay.classList.add('active'); }
+        function closeInfoModal() { infoModalOverlay.classList.remove('active'); }
 
         openModalButton.addEventListener('click', openModal);
         openInfoButton.addEventListener('click', openInfoModal);
 
         if (likeButton) {
             likeButton.addEventListener('click', () => {
-                if (hasLiked()) {
-                    return;
-                }
-
+                if (hasLiked()) return;
                 const currentLikes = Math.max(getSavedLikes(), getLikesFromUrl());
-                if (currentLikes >= 100) {
-                    likeButton.disabled = true;
-                    likeButton.style.opacity = '0.7';
-                    likeButton.textContent = '👍 Límite 100';
-                    return;
-                }
-
+                if (currentLikes >= 100) { likeButton.disabled = true; likeButton.style.opacity = '0.7'; likeButton.textContent = '👍 Límite 100'; return; }
                 const nextLikes = Math.min(currentLikes + 1, 100);
-                saveLikes(nextLikes);
-                setLiked();
-                updateLikeDisplay(nextLikes);
+                saveLikes(nextLikes); setLiked(); updateLikeDisplay(nextLikes);
                 addActivity('like', {});
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = nextLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
+                likeButton.disabled = true; likeButton.style.opacity = '0.7'; likeButton.textContent = nextLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
             });
         }
 
@@ -1921,121 +1873,54 @@
             shareButton.addEventListener('click', () => {
                 const currentShares = getSavedShares();
                 const nextShares = currentShares + 1;
-                saveShares(nextShares);
-                updateShareDisplay(nextShares);
-                addActivity('share', {});
-
+                saveShares(nextShares); updateShareDisplay(nextShares); addActivity('share', {});
                 const shareUrl = `${window.location.origin}${window.location.pathname}?shares=${nextShares}`;
                 const text = `Mira esta página de Augusto Gamer: ${shareUrl}`;
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-
-                window.open(whatsappUrl, '_blank');
-                shareButton.textContent = '✅ Enviado';
-
-                setTimeout(() => {
-                    if (shareButton) {
-                        shareButton.textContent = '🔗 Compartir';
-                    }
-                }, 2200);
+                window.open(whatsappUrl, '_blank'); shareButton.textContent = '✅ Enviado';
+                setTimeout(() => { if (shareButton) { shareButton.textContent = '🔗 Compartir'; } }, 2200);
             });
         }
 
         if (commentSubmit && commentInput) {
             commentSubmit.addEventListener('click', () => {
-                const commentText = commentInput.value.trim();
-                if (!commentText) return;
-
+                const commentText = commentInput.value.trim(); if (!commentText) return;
                 const comments = getSavedComments();
-                const nextComment = {
-                    text: commentText,
-                    timestamp: new Date().toLocaleString('es-ES', { hour12: false })
-                };
-                comments.push(nextComment);
-                saveComments(comments);
-                renderComments(comments);
-                addActivity('comment', { text: commentText });
-                commentInput.value = '';
+                const nextComment = { text: commentText, timestamp: new Date().toLocaleString('es-ES', { hour12: false }) };
+                comments.push(nextComment); saveComments(comments); renderComments(comments); addActivity('comment', { text: commentText }); commentInput.value = '';
             });
         }
 
-        const initialLikes = Math.max(getSavedLikes(), getLikesFromUrl());
-        updateLikeDisplay(initialLikes);
+        const initialLikes = Math.max(getSavedLikes(), getLikesFromUrl()); updateLikeDisplay(initialLikes);
         if (likeButton) {
-            if (hasLiked()) {
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = initialLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
-            } else if (initialLikes >= 100) {
-                likeButton.disabled = true;
-                likeButton.style.opacity = '0.7';
-                likeButton.textContent = '👍 Límite 100';
-            }
+            if (hasLiked()) { likeButton.disabled = true; likeButton.style.opacity = '0.7'; likeButton.textContent = initialLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó'; }
+            else if (initialLikes >= 100) { likeButton.disabled = true; likeButton.style.opacity = '0.7'; likeButton.textContent = '👍 Límite 100'; }
         }
 
-        const initialShares = getSavedShares();
-        updateShareDisplay(initialShares);
+        const initialShares = getSavedShares(); updateShareDisplay(initialShares);
+        const initialComments = getSavedComments(); renderComments(initialComments);
 
-        const initialComments = getSavedComments();
-        renderComments(initialComments);
-
-        // Initialize activity feed and stats
+        // Initialize firebase (if configured) and activity feed/stats
+        initFirebaseIfConfigured();
         updateActivityFeed();
         updateActivityStats();
 
-
-        function updateImpactButtons(isActive) {
-            const text = isActive ? 'Ocultar Impacto' : 'Mostrar Impacto';
-            if (toggleImpactButton) toggleImpactButton.textContent = text;
-            if (showImpactButton) showImpactButton.textContent = text;
-        }
-
-        const toggleHandler = () => {
-            const isActive = impactOverlay.classList.toggle('active');
-            impactOverlay.setAttribute('aria-hidden', (!isActive).toString());
-            updateImpactButtons(isActive);
-        };
-
+        function updateImpactButtons(isActive) { const text = isActive ? 'Ocultar Impacto' : 'Mostrar Impacto'; if (toggleImpactButton) toggleImpactButton.textContent = text; if (showImpactButton) showImpactButton.textContent = text; }
+        const toggleHandler = () => { const isActive = impactOverlay.classList.toggle('active'); impactOverlay.setAttribute('aria-hidden', (!isActive).toString()); updateImpactButtons(isActive); };
         if (toggleImpactButton) toggleImpactButton.addEventListener('click', toggleHandler);
         if (showImpactButton) showImpactButton.addEventListener('click', toggleHandler);
-
-        // initialize texts based on current state
         updateImpactButtons(impactOverlay.classList.contains('active'));
 
-        // close overlay when clicking backdrop
-        impactOverlay?.addEventListener('click', (e) => {
-            if (e.target === impactOverlay) {
-                impactOverlay.classList.remove('active');
-                impactOverlay.setAttribute('aria-hidden', 'true');
-                updateImpactButtons(false);
-            }
-        });
+        impactOverlay?.addEventListener('click', (e) => { if (e.target === impactOverlay) { impactOverlay.classList.remove('active'); impactOverlay.setAttribute('aria-hidden', 'true'); updateImpactButtons(false); } });
         modalClose.addEventListener('click', closeModal);
         infoModalClose.addEventListener('click', closeInfoModal);
-        if (infoModalExit) {
-            infoModalExit.addEventListener('click', closeInfoModal);
-        }
-        if (infoModalDonate) {
-            infoModalDonate.addEventListener('click', () => {
-                closeInfoModal();
-                openModal();
-            });
-        }
-        modalOverlay.addEventListener('click', (event) => {
-            if (event.target === modalOverlay) {
-                closeModal();
-            }
-        });
-        infoModalOverlay.addEventListener('click', (event) => {
-            if (event.target === infoModalOverlay) {
-                closeInfoModal();
-            }
-        });
+        if (infoModalExit) { infoModalExit.addEventListener('click', closeInfoModal); }
+        if (infoModalDonate) { infoModalDonate.addEventListener('click', () => { closeInfoModal(); openModal(); }); }
+        modalOverlay.addEventListener('click', (event) => { if (event.target === modalOverlay) { closeModal(); } });
+        infoModalOverlay.addEventListener('click', (event) => { if (event.target === infoModalOverlay) { closeInfoModal(); } });
 
-        // Auto-refresh activity feed every 2 seconds
-        setInterval(() => {
-            updateActivityFeed();
-            updateActivityStats();
-        }, 2000);
+        // Auto-refresh activity feed every 2 seconds to reflect local changes
+        setInterval(() => { updateActivityFeed(); updateActivityStats(); }, 2000);
     </script>
 </body>
 </html>
