@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contenido AugustoGamer</title>
+    <title>Contenidos Augusto Gamer</title>
     <style>
         :root {
             color-scheme: dark;
@@ -446,7 +446,153 @@
             gap: 14px;
             justify-content: flex-start;
             flex-wrap: wrap;
-            margin-bottom: 50px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .like-area,
+        .share-area {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: var(--accent);
+        }
+
+        .like-button,
+        .share-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            font-weight: 700;
+            min-width: 140px;
+        }
+
+        .like-button:hover,
+        .share-button:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .like-counter,
+        .share-counter,
+        .comment-count {
+            min-width: 48px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #eef2ff;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .comment-card {
+            margin-top: 6px;
+            padding: 4px 6px;
+            border-radius: 12px;
+            background: rgba(17, 24, 45, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .comment-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            color: #eef2ff;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            gap: 4px;
+            font-size: 0.78rem;
+        }
+
+        .comment-count {
+            min-width: 28px;
+            padding: 2px 6px;
+            font-size: 0.76rem;
+        }
+
+        .comment-entry {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 5px 7px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+            color: #eef2ff;
+            resize: none;
+            min-height: 28px;
+            font-size: 0.8rem;
+            line-height: 1.2;
+        }
+
+        .comment-input::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .comment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .comment-item {
+            padding: 4px 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            min-height: 26px;
+            max-width: 160px;
+            font-size: 0.72rem;
+            color: #eef2ff;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .comment-text {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding-right: 2px;
+        }
+
+        .comment-timestamp {
+            padding: 3px 6px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #a9b4d8;
+            font-size: 0.68rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: right;
+            min-width: 48px;
+        }
+
+        .comment-card .btn-primary {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.82rem;
+            margin-top: 0;
+            min-width: 60px;
         }
 
         .btn-primary {
@@ -1096,8 +1242,26 @@
             <div class="cta-buttons">
                 <button class="btn-primary" id="openModalButton" type="button">Hacer Donación PayPal</button>
                 <button class="btn-secondary" type="button" id="openInfoButton">Conoce Más</button>
-                                <button class="btn-secondary" id="showImpactButton" type="button">Mostrar Impacto</button>
-
+                <button class="btn-secondary" id="showImpactButton" type="button">Mostrar Impacto</button>
+                <div class="like-area">
+                    <button class="like-button" id="likeButton" type="button">👍 Me gusta</button>
+                    <span class="like-counter" id="likeCount">0</span>
+                </div>
+                <div class="share-area">
+                    <button class="share-button" id="shareButton" type="button">🔗 Compartir</button>
+                    <span class="share-counter" id="shareCount">0</span>
+                </div>
+            </div>
+            <div class="comment-card">
+                <div class="comment-card-header">
+                    <span>Comentarios</span>
+                    <span class="comment-count" id="commentCount">0</span>
+                </div>
+                <div class="comment-entry">
+                    <textarea id="commentInput" class="comment-input" placeholder="Comentar..."></textarea>
+                    <button class="btn-primary" id="commentSubmit" type="button">Enviar</button>
+                </div>
+                <div class="comment-list" id="commentList"></div>
             </div>
             
         </div>
@@ -1230,7 +1394,92 @@
         const infoModalClose = document.getElementById('infoModalClose');
         const infoModalExit = document.getElementById('infoModalExit');
         const infoModalDonate = document.getElementById('infoModalDonate');
+        const likeButton = document.getElementById('likeButton');
+        const likeCountElem = document.getElementById('likeCount');
+        const shareButton = document.getElementById('shareButton');
+        const shareCountElem = document.getElementById('shareCount');
+        const commentInput = document.getElementById('commentInput');
+        const commentSubmit = document.getElementById('commentSubmit');
+        const commentList = document.getElementById('commentList');
+        const commentCountElem = document.getElementById('commentCount');
         let modalTimeout;
+
+        function getSavedLikes() {
+            return Math.min(100, parseInt(localStorage.getItem('augustoLikeCount') ?? '0', 10));
+        }
+
+        function getLikesFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const urlLikes = parseInt(params.get('likes') ?? '0', 10);
+            return Math.min(100, Number.isNaN(urlLikes) ? 0 : urlLikes);
+        }
+
+        function hasLiked() {
+            return localStorage.getItem('augustoLiked') === 'true';
+        }
+
+        function setLiked() {
+            localStorage.setItem('augustoLiked', 'true');
+        }
+
+        function saveLikes(value) {
+            const nextValue = Math.min(100, value);
+            localStorage.setItem('augustoLikeCount', String(nextValue));
+            updateUrlParams('likes', nextValue);
+        }
+
+        function updateLikeDisplay(count) {
+            if (likeCountElem) {
+                likeCountElem.textContent = count.toString();
+            }
+        }
+
+        function getSavedShares() {
+            return parseInt(localStorage.getItem('augustoShareCount') ?? '0', 10);
+        }
+
+        function saveShares(value) {
+            localStorage.setItem('augustoShareCount', String(value));
+            updateUrlParams('shares', value);
+        }
+
+        function updateShareDisplay(count) {
+            if (shareCountElem) {
+                shareCountElem.textContent = `${count}`;
+            }
+        }
+
+        function getSavedComments() {
+            try {
+                return JSON.parse(localStorage.getItem('augustoComments') ?? '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function saveComments(comments) {
+            localStorage.setItem('augustoComments', JSON.stringify(comments));
+        }
+
+        function renderComments(comments) {
+            if (!commentList) return;
+            commentList.innerHTML = '';
+            comments.slice().reverse().forEach((comment) => {
+                const item = document.createElement('div');
+                item.className = 'comment-item';
+                item.innerHTML = `<div class="comment-text">${comment.text}</div><div class="comment-timestamp">${comment.timestamp}</div>`;
+                commentList.appendChild(item);
+            });
+            if (commentCountElem) {
+                commentCountElem.textContent = comments.length.toString();
+            }
+        }
+
+        function updateUrlParams(key, value) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(key, String(value));
+            history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+        }
 
         function openModal() {
             clearTimeout(modalTimeout);
@@ -1264,6 +1513,90 @@
 
         openModalButton.addEventListener('click', openModal);
         openInfoButton.addEventListener('click', openInfoModal);
+
+        if (likeButton) {
+            likeButton.addEventListener('click', () => {
+                if (hasLiked()) {
+                    return;
+                }
+
+                const currentLikes = Math.max(getSavedLikes(), getLikesFromUrl());
+                if (currentLikes >= 100) {
+                    likeButton.disabled = true;
+                    likeButton.style.opacity = '0.7';
+                    likeButton.textContent = '👍 Límite 100';
+                    return;
+                }
+
+                const nextLikes = Math.min(currentLikes + 1, 100);
+                saveLikes(nextLikes);
+                setLiked();
+                updateLikeDisplay(nextLikes);
+                likeButton.disabled = true;
+                likeButton.style.opacity = '0.7';
+                likeButton.textContent = nextLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
+            });
+        }
+
+        if (shareButton) {
+            shareButton.addEventListener('click', () => {
+                const currentShares = getSavedShares();
+                const nextShares = currentShares + 1;
+                saveShares(nextShares);
+                updateShareDisplay(nextShares);
+
+                const shareUrl = `${window.location.origin}${window.location.pathname}?shares=${nextShares}`;
+                const text = `Mira esta página de Augusto Gamer: ${shareUrl}`;
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+
+                window.open(whatsappUrl, '_blank');
+                shareButton.textContent = '✅ Enviado';
+
+                setTimeout(() => {
+                    if (shareButton) {
+                        shareButton.textContent = '🔗 WhatsApp';
+                    }
+                }, 2200);
+            });
+        }
+
+        if (commentSubmit && commentInput) {
+            commentSubmit.addEventListener('click', () => {
+                const commentText = commentInput.value.trim();
+                if (!commentText) return;
+
+                const comments = getSavedComments();
+                const nextComment = {
+                    text: commentText,
+                    timestamp: new Date().toLocaleString('es-ES', { hour12: false })
+                };
+                comments.push(nextComment);
+                saveComments(comments);
+                renderComments(comments);
+                commentInput.value = '';
+            });
+        }
+
+        const initialLikes = Math.max(getSavedLikes(), getLikesFromUrl());
+        updateLikeDisplay(initialLikes);
+        if (likeButton) {
+            if (hasLiked()) {
+                likeButton.disabled = true;
+                likeButton.style.opacity = '0.7';
+                likeButton.textContent = initialLikes >= 100 ? '👍 Límite 100' : '👍 Ya gustó';
+            } else if (initialLikes >= 100) {
+                likeButton.disabled = true;
+                likeButton.style.opacity = '0.7';
+                likeButton.textContent = '👍 Límite 100';
+            }
+        }
+
+        const initialShares = getSavedShares();
+        updateShareDisplay(initialShares);
+
+        const initialComments = getSavedComments();
+        renderComments(initialComments);
+
 
         function updateImpactButtons(isActive) {
             const text = isActive ? 'Ocultar Impacto' : 'Mostrar Impacto';
