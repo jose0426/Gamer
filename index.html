@@ -247,9 +247,15 @@
             background: rgba(15, 23, 44, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 28px;
-            padding: 28px;
+            padding: 22px;
             margin-top: 30px;
             box-shadow: 0 34px 92px rgba(0, 0, 0, 0.2);
+        }
+
+        .activity-feed-list,
+        .comment-list {
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .activity-feed-header {
@@ -645,11 +651,34 @@
 
         .comment-card {
             margin-top: 6px;
-            padding: 4px 6px;
+            padding: 10px 12px;
             border-radius: 12px;
             background: rgba(17, 24, 45, 0.82);
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .comments-activity-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 22px;
+            align-items: start;
+            margin-top: 22px;
+            width: 100%;
+            max-width: 1080px;
+        }
+
+        .comments-activity-grid .comment-card,
+        .comments-activity-grid .activity-feed-card {
+            width: 100%;
+            margin: 0;
+            min-height: auto;
+        }
+
+        @media (max-width: 900px) {
+            .comments-activity-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .comment-card-header {
@@ -699,6 +728,14 @@
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
+        }
+
+        .section-divider {
+            width: 100%;
+            height: 1px;
+            margin: 22px 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
         }
 
         .comment-item {
@@ -1402,28 +1439,39 @@
                     <span class="share-counter" id="shareCount">0</span>
                 </div>
             </div>
-            <div class="comment-card">
-                <div class="comment-card-header">
-                    <span>Comentarios</span>
-                    <span class="comment-count" id="commentCount">0</span>
+            <div class="comments-activity-grid">
+                <div class="comment-card">
+                    <div class="comment-card-header">
+                        <span>Comentarios</span>
+                        <span class="comment-count" id="commentCount">0</span>
+                    </div>
+                    <div class="comment-entry">
+                        <textarea id="commentInput" class="comment-input" placeholder="Comentar..."></textarea>
+                        <button class="btn-primary" id="commentSubmit" type="button">Enviar</button>
+                    </div>
+                    <div class="comment-list" id="commentList"></div>
                 </div>
-                <div class="comment-entry">
-                    <textarea id="commentInput" class="comment-input" placeholder="Comentar..."></textarea>
-                    <button class="btn-primary" id="commentSubmit" type="button">Enviar</button>
+                <div class="activity-feed-card">
+                    <div class="activity-feed-header">
+                        <div>
+                            <div class="activity-feed-title">Historial de actividad</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                            <div class="activity-feed-status" id="activityFeedStatus">Sincronización local activa</div>
+                            <button class="btn-secondary small" id="openFirebaseConfigButton" type="button" style="font-size: 0.82rem; padding: 10px 14px;">Configurar Sync</button>
+                        </div>
+                    </div>
+                    <div class="activity-feed-list" id="activityFeedList">
+                        <div class="activity-feed-empty">Sin actividad aún.</div>
+                    </div>
                 </div>
-                <div class="comment-list" id="commentList"></div>
             </div>
-            
         </div>
         
     </section>
 
     <!-- FOOTER -->
-    <section class="footer-section">
-        <div class="footer-box">
-            <p>© 2024 <span class="footer-brand">Augusto Gamer</span>. Creador de Contenido y Desarrollador. | <span class="footer-highlight">Donaciones seguras con PayPal</span></p>
-        </div>
-    </section>
+  
 
     <div class="firebase-config-overlay" id="firebaseConfigOverlay" role="dialog" aria-modal="true">
         <div class="firebase-config-window">
@@ -1440,7 +1488,16 @@
                     <li>Habilita Realtime Database → Crear → Modo prueba</li>
                     <li>Ve a Settings → Tu app → "Config"</li>
                     <li>Copia el objeto JSON completo</li>
-                    <li>Pega abajo y acepta ✅</li>
+                    <li>Pega abajo y acepta ✅ {
+  "apiKey": "AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "authDomain": "augusto-gamer.firebaseapp.com",
+  "databaseURL": "https://augusto-gamer.firebaseio.com",
+  "projectId": "augusto-gamer",
+  "storageBucket": "augusto-gamer.appspot.com",
+  "messagingSenderId": "123456789012345678",
+  "appId": "1:123456789012:web:abcdef1234567890"
+}
+</li>
                 </ol>
                 <label style="display: block; color: #eef2ff; font-weight: 700; margin-top: 18px;">Objeto JSON de Firebase:</label>
                 <textarea id="firebaseJsonInput" class="firebase-json-textarea" placeholder="{\n  &quot;apiKey&quot;: &quot;AIzaSy...&quot;,\n  &quot;authDomain&quot;: &quot;augusto-gamer.firebaseapp.com&quot;,\n  &quot;databaseURL&quot;: &quot;https://augusto-gamer.firebaseio.com&quot;,\n  &quot;projectId&quot;: &quot;augusto-gamer&quot;,\n  &quot;storageBucket&quot;: &quot;augusto-gamer.appspot.com&quot;,\n  &quot;messagingSenderId&quot;: &quot;123456789012345678&quot;,\n  &quot;appId&quot;: &quot;1:123456789012:web:abcdef1234567890&quot;\n}"></textarea>
@@ -1450,19 +1507,6 @@
                 </div>
                 <p style="margin-top: 18px; color: #a9b4d6; font-size: 0.88rem;">En modo local los datos se guardan solo en este dispositivo. Con Firebase todos los dispositivos ven el mismo historial.</p>
             </div>
-        </div>
-    </div>
-
-    <div class="activity-feed-card">
-        <div class="activity-feed-header">
-            <div>
-                <div class="activity-feed-title">Historial de actividad</div>
-                <p style="margin-top: 8px; color: #cbd6f8; font-size: 0.95rem; max-width: 540px;">Aquí se muestran los likes, comentarios y shares registrados en tiempo real. Si Firebase está configurado, todos los usuarios verán el mismo proceso.</p>
-            </div>
-            <div class="activity-feed-status" id="activityFeedStatus">Sincronización local activa</div>
-        </div>
-        <div class="activity-feed-list" id="activityFeedList">
-            <div class="activity-feed-empty">Sin actividad aún.</div>
         </div>
     </div>
 
@@ -1570,6 +1614,12 @@
         </div>
     </div>
 
+    <section class="footer-section">
+        <div class="footer-box">
+            <p>© 2024 <span class="footer-brand">Augusto Gamer</span>. Creador de Contenido y Desarrollador. | <span class="footer-highlight">Donaciones seguras con PayPal</span></p>
+        </div>
+    </section>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
@@ -1618,8 +1668,27 @@
             return Math.min(100, parseInt(localStorage.getItem('augustoLikeCount') ?? '0', 10));
         }
 
+        function hasLiked() {
+            return localStorage.getItem('augustoLiked') === 'true';
+        }
+
+        function setLiked() {
+            localStorage.setItem('augustoLiked', 'true');
+        }
+
+        function saveLikes(value) {
+            const nextValue = Math.min(100, value);
+            localStorage.setItem('augustoLikeCount', String(nextValue));
+            updateUrlParams('likes', nextValue);
+        }
+
         function getSavedShares() {
             return parseInt(localStorage.getItem('augustoShareCount') ?? '0', 10);
+        }
+
+        function saveShares(value) {
+            localStorage.setItem('augustoShareCount', String(value));
+            updateUrlParams('shares', value);
         }
 
         function getSavedComments() {
@@ -1628,6 +1697,10 @@
             } catch {
                 return [];
             }
+        }
+
+        function saveComments(comments) {
+            localStorage.setItem('augustoComments', JSON.stringify(comments));
         }
 
         function getSavedActivityLog() {
@@ -1640,6 +1713,46 @@
 
         function saveActivityLog(log) {
             localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(log));
+        }
+
+        function openModal() {
+            if (!modalOverlay) return;
+            modalOverlay.style.display = 'flex';
+            modalOverlay.setAttribute('aria-hidden', 'false');
+            if (modalLoader) {
+                modalLoader.classList.add('active');
+            }
+            if (modalFallback) {
+                modalFallback.style.display = 'none';
+            }
+
+            clearTimeout(modalTimeout);
+            modalTimeout = setTimeout(() => {
+                if (modalLoader) {
+                    modalLoader.classList.remove('active');
+                }
+                if (modalFallback) {
+                    modalFallback.style.display = 'block';
+                }
+            }, 500);
+        }
+
+        function closeModal() {
+            if (!modalOverlay) return;
+            modalOverlay.style.display = 'none';
+            modalOverlay.setAttribute('aria-hidden', 'true');
+        }
+
+        function openInfoModal() {
+            if (!infoModalOverlay) return;
+            infoModalOverlay.classList.add('active');
+            infoModalOverlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeInfoModal() {
+            if (!infoModalOverlay) return;
+            infoModalOverlay.classList.remove('active');
+            infoModalOverlay.setAttribute('aria-hidden', 'true');
         }
 
         function updateLikeDisplay(count) {
@@ -1807,7 +1920,7 @@
             const savedConfig = loadFirebaseConfig();
             if (!validateFirebaseConfig(savedConfig)) {
                 updateFeedStatus(false);
-                showFirebaseConfigOverlay();
+                hideFirebaseConfigOverlay();
                 renderActivityFeed();
                 updateAggregateStats();
                 return;
@@ -1895,6 +2008,13 @@
 
         if (openInfoButton) {
             openInfoButton.addEventListener('click', openInfoModal);
+        }
+
+        const openFirebaseConfigButton = document.getElementById('openFirebaseConfigButton');
+        if (openFirebaseConfigButton) {
+            openFirebaseConfigButton.addEventListener('click', () => {
+                firebaseConfigOverlay.style.display = 'flex';
+            });
         }
 
         if (likeButton) {
